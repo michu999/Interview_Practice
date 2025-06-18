@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=postgres_practice
+      - POSTGRES_USER=postgres_practice
+      - POSTGRES_PASSWORD=password123 # To samo hasło co w settings.py
+    ports:
+      - "5432:5432" # Wystawiamy port, żeby móc się podłączyć z PyCharma
+
+  web:
+    build: .
+    command: >
+      sh -c "python manage.py migrate &&
+             gunicorn --bind 0.0.0.0:8000 my_api.wsgi"
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - POSTGRES_NAME=postgres_practice
+      - POSTGRES_USER=postgres_practice
+      - POSTGRES_PASSWORD=password123
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
