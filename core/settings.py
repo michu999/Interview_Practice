@@ -38,7 +38,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'datamodel',
 ]
 
 MIDDLEWARE = [
@@ -51,7 +50,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'my_api.urls'
 
 TEMPLATES = [
     {
@@ -68,13 +66,12 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'my_api.wsgi.application'
+WSGI_APPLICATION = 'core.wsgi.application'
+ROOT_URLCONF = 'core.urls'
 
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
