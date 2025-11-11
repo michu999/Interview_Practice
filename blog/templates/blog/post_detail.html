@@ -1,0 +1,388 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}{{ post.title }} - Blog Podróżniczy AI{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""/>
+{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="{% url 'blog:post_list' %}" class="text-decoration-none" aria-label="Powrót do strony głównej">
+                <i class="bi bi-house-door" aria-hidden="true"></i> Strona Główna
+            </a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">{{ post.title|truncatewords:5 }}</li>
+    </ol>
+</nav>
+
+<div class="row g-4">
+    <!-- Main Content Column -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4 p-md-5">
+                <header class="mb-4 pb-4 border-bottom">
+                    <h2 class="display-6 fw-bold mb-3">{{ post.title }}</h2>
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        <span class="badge ai-badge-{{ post.author|lower }} text-uppercase fs-6">
+                            <i class="bi bi-robot" aria-hidden="true"></i> {{ post.author }}
+                        </span>
+                        <span class="text-muted">
+                            <i class="bi bi-calendar3" aria-hidden="true"></i> {{ post.created_at|date:"d F Y" }}
+                        </span>
+                    </div>
+                </header>
+
+                <div class="post-content-text mb-5">
+                    {{ post.content|linebreaks }}
+                </div>
+
+                <div class="location-details">
+                    <h4 class="mb-3">
+                        <i class="bi bi-geo-alt-fill text-primary" aria-hidden="true"></i> Szczegóły Lokalizacji
+                    </h4>
+                    <p class="text-muted mb-3">
+                        <strong>Współrzędne:</strong> {{ post.latitude }}, {{ post.longitude }}
+                    </p>
+                    <div id="map" class="map-container-bootstrap rounded shadow-sm"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Column -->
+    <div class="col-lg-4">
+        <!-- Rating Summary Card -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body text-center p-4">
+                <h5 class="card-title mb-3">
+                    <i class="bi bi-star-fill text-warning" aria-hidden="true"></i> Podsumowanie Ocen
+                </h5>
+                {% if post.average_rating %}
+                    <div class="rating-display-large mb-3">
+                        <div class="display-4 fw-bold text-warning">{{ post.average_rating }}</div>
+                        <div class="text-muted">/10</div>
+                    </div>
+                    <p class="text-muted small mb-0">
+                        Na podstawie {{ post.rating_count }} {% if post.rating_count == 1 %}oceny{% elif post.rating_count < 5 %}ocen{% else %}ocen{% endif %}
+                    </p>
+                {% else %}
+                    <div class="py-3">
+                        <i class="bi bi-star display-4 text-muted mb-3 d-block" aria-hidden="true"></i>
+                        <p class="text-muted fst-italic mb-0">Brak ocen. Bądź pierwszy!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Rating Form Card -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <h5 class="card-title mb-3">
+                    <i class="bi bi-hand-thumbs-up"></i> Oceń Ten Post
+                </h5>
+                <form id="ratingForm" method="post" action="{% url 'blog:submit_rating' post.pk %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="score" class="form-label fw-semibold">Wybierz Ocenę (1-10):</label>
+                        <div class="rating-buttons-grid">
+                            {% for i in "12345678910" %}
+                            <button type="button" class="btn btn-outline-primary rating-btn-bootstrap"
+                                    data-score="{{ forloop.counter }}"
+                                    aria-label="Oceń {{ forloop.counter }} z 10">
+                                {{ forloop.counter }}
+                            </button>
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" name="score" id="score" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100" id="submitBtn" disabled>
+                        <i class="bi bi-send" aria-hidden="true"></i> Wyślij Ocenę
+                    </button>
+                </form>
+                <div id="ratingMessage" class="mt-3" role="alert"></div>
+            </div>
+        </div>
+
+        <!-- Recent Ratings Card -->
+        {% if recent_ratings %}
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <h5 class="card-title mb-3">
+                    <i class="bi bi-clock-history" aria-hidden="true"></i> Ostatnie Oceny
+                </h5>
+                <ul class="list-group list-group-flush">
+                    {% for rating in recent_ratings %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span class="fw-bold text-warning">
+                            <i class="bi bi-star-fill" aria-hidden="true"></i> {{ rating.score }}/10
+                        </span>
+                        <small class="text-muted">
+                            <i class="bi bi-calendar3" aria-hidden="true"></i> {{ rating.created_at|date:"d M Y" }}
+                        </small>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""></script>
+<script>
+    // Initialize Leaflet map with better options
+    const lat = {{ post.latitude }};
+    const lng = {{ post.longitude }};
+
+    // Create map with enhanced options
+    const map = L.map('map', {
+        center: [lat, lng],
+        zoom: 13,
+        zoomControl: true,
+        scrollWheelZoom: true,
+        doubleClickZoom: true,
+        touchZoom: true,
+        dragging: true,
+        tap: true,
+        maxZoom: 18,
+        minZoom: 3
+    });
+
+    // Add multiple tile layer options with Polish language
+    // Using OpenStreetMap.HOT for better international coverage with custom styling
+    const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 19,
+        className: 'map-tiles',
+        // Force Polish labels by setting language preference
+        language: 'pl'
+    });
+
+    const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Obrazy satelitarne &copy; Esri',
+        maxZoom: 18
+    });
+
+    // Add default street layer
+    streetLayer.addTo(map);
+
+    // Create custom icon for marker
+    const customIcon = L.divIcon({
+        className: 'custom-marker',
+        html: `
+            <div class="marker-pin">
+                <div class="marker-icon">📍</div>
+            </div>
+            <div class="marker-shadow"></div>
+        `,
+        iconSize: [40, 50],
+        iconAnchor: [20, 50],
+        popupAnchor: [0, -50]
+    });
+
+    // Create enhanced popup content
+    const popupContent = `
+        <div class="custom-popup">
+            <div class="popup-header">
+                <strong>{{ post.title|escapejs }}</strong>
+            </div>
+            <div class="popup-body">
+                <p class="popup-author">
+                    <span class="popup-badge ai-{{ post.author|lower }}">{{ post.author }}</span>
+                </p>
+                <p class="popup-coords">
+                    <small>📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}</small>
+                </p>
+                {% if post.average_rating %}
+                <p class="popup-rating">
+                    <small>⭐ {{ post.average_rating }}/10</small>
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    `;
+
+    // Add marker with custom icon and popup
+    const marker = L.marker([lat, lng], {
+        icon: customIcon,
+        title: '{{ post.title|escapejs }}',
+        alt: 'Location marker for {{ post.title|escapejs }}'
+    }).addTo(map);
+
+    // Bind popup with custom content
+    marker.bindPopup(popupContent, {
+        maxWidth: 250,
+        className: 'custom-popup-container'
+    }).openPopup();
+
+    // Add a circle to show approximate area
+    L.circle([lat, lng], {
+        color: '#4facfe',
+        fillColor: '#4facfe',
+        fillOpacity: 0.15,
+        radius: 500,
+        weight: 2
+    }).addTo(map);
+
+    // Add scale control
+    L.control.scale({
+        imperial: true,
+        metric: true,
+        position: 'bottomleft'
+    }).addTo(map);
+
+    // Add layer control for switching between street and satellite view (Polish labels)
+    const baseMaps = {
+        "Mapa ulic": streetLayer,
+        "Widok satelitarny": satelliteLayer
+    };
+
+    L.control.layers(baseMaps, null, {
+        position: 'topright',
+        collapsed: true
+    }).addTo(map);
+
+    // Add custom zoom control styling
+    const zoomControl = map.zoomControl;
+    if (zoomControl) {
+        zoomControl.setPosition('topright');
+    }
+
+    // Add a "Locate Me" button in Polish
+    const locateButton = L.control({position: 'topright'});
+    locateButton.onAdd = function(map) {
+        const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control locate-control');
+        div.innerHTML = '<a href="#" title="Znajdź moją lokalizację" role="button" aria-label="Znajdź moją lokalizację">🎯</a>';
+        div.onclick = function(e) {
+            e.preventDefault();
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const userLat = position.coords.latitude;
+                    const userLng = position.coords.longitude;
+
+                    // Calculate distance
+                    const distance = map.distance([lat, lng], [userLat, userLng]);
+                    const distanceKm = (distance / 1000).toFixed(1);
+
+                    // Add user marker
+                    L.marker([userLat, userLng], {
+                        icon: L.divIcon({
+                            className: 'user-location-marker',
+                            html: '<div class="user-marker">👤</div>',
+                            iconSize: [30, 30],
+                            iconAnchor: [15, 15]
+                        })
+                    }).addTo(map)
+                        .bindPopup(`Jesteś ${distanceKm} km od tej lokalizacji`)
+                        .openPopup();
+
+                    // Fit bounds to show both locations
+                    const bounds = L.latLngBounds([[lat, lng], [userLat, userLng]]);
+                    map.fitBounds(bounds, {padding: [50, 50]});
+                }, function(error) {
+                    alert('Nie można pobrać Twojej lokalizacji: ' + error.message);
+                });
+            } else {
+                alert('Geolokalizacja nie jest obsługiwana przez Twoją przeglądarkę');
+            }
+        };
+        return div;
+    };
+    locateButton.addTo(map);
+
+    // Invalidate size after a short delay to ensure proper rendering
+    setTimeout(function() {
+        map.invalidateSize();
+    }, 100);
+
+    // Rating form handling
+    const ratingButtons = document.querySelectorAll('.rating-btn-bootstrap');
+    const scoreInput = document.getElementById('score');
+    const submitBtn = document.getElementById('submitBtn');
+    const ratingForm = document.getElementById('ratingForm');
+    const messageDiv = document.getElementById('ratingMessage');
+
+    // Handle rating button clicks
+    ratingButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const score = this.getAttribute('data-score');
+            scoreInput.value = score;
+
+            // Update UI
+            ratingButtons.forEach(b => b.classList.remove('selected'));
+            this.classList.add('selected');
+            submitBtn.disabled = false;
+        });
+    });
+
+    // Handle form submission
+    ratingForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        // Disable button and show loading state
+        submitBtn.disabled = true;
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Wysyłanie...';
+        messageDiv.className = '';
+        messageDiv.textContent = '';
+
+        const formData = new FormData(this);
+
+        fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                messageDiv.className = 'alert alert-success alert-dismissible fade show';
+                messageDiv.innerHTML = `
+                    <i class="bi bi-check-circle-fill me-2"></i>${data.message} Odświeżanie...
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Zamknij"></button>
+                `;
+
+                // Update rating display
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                messageDiv.className = 'alert alert-danger alert-dismissible fade show';
+                messageDiv.innerHTML = `
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>${data.error || 'Nie udało się przesłać oceny'}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Zamknij"></button>
+                `;
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        })
+        .catch(error => {
+            messageDiv.className = 'alert alert-danger alert-dismissible fade show';
+            messageDiv.innerHTML = `
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>Wystąpił błąd. Sprawdź połączenie i spróbuj ponownie.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Zamknij"></button>
+            `;
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+            console.error('Rating submission error:', error);
+        });
+    });
+</script>
+{% endblock %}
+

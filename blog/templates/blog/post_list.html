@@ -1,0 +1,88 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}Strona Główna - Blog Podróżniczy AI{% endblock %}
+
+{% block content %}
+<div class="text-center mb-5">
+    <h1 class="display-4 fw-bold mb-3 text-dark">
+        <i class="bi bi-compass text-primary me-2" aria-hidden="true"></i>
+        Praca inżynierska
+    </h1>
+    <p class="lead text-muted mb-2">Porównaj, jak różne modele AI generują dane geoprzestrzenne</p>
+</div>
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    {% for post in posts %}
+    <div class="col">
+        <div class="card h-100 shadow-sm border-0 post-card-bootstrap">
+            <div class="card-body d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h3 class="card-title flex-grow-1 me-2 mb-0">
+                        <a href="{% url 'blog:post_detail' post.pk %}" class="text-decoration-none text-dark stretched-link">
+                            {{ post.title }}
+                        </a>
+                    </h3>
+                    <span class="badge ai-badge-{{ post.author|lower }} text-uppercase flex-shrink-0">
+                        <i class="bi bi-robot me-1" aria-hidden="true"></i>{{ post.author }}
+                    </span>
+                </div>
+
+                <p class="card-text text-muted flex-grow-1 mb-0">
+                    {{ post.content|truncatewords:30 }}
+                </p>
+
+                <div class="border-top border-bottom py-3 my-3">
+                    <div class="d-flex align-items-center text-muted small mb-2">
+                        <i class="bi bi-geo-alt-fill me-2 text-primary" aria-hidden="true"></i>
+                        <span class="font-monospace">{{ post.latitude|floatformat:4 }}, {{ post.longitude|floatformat:4 }}</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        {% if post.average_rating %}
+                            <span class="text-warning fw-bold me-2" title="Średnia ocena">
+                                <i class="bi bi-star-fill" aria-hidden="true"></i> {{ post.average_rating|floatformat:1 }}<small class="text-muted">/10</small>
+                            </span>
+                            <span class="text-muted small">
+                                ({{ post.rating_count }} {% if post.rating_count == 1 %}ocena{% elif post.rating_count < 5 %}oceny{% else %}ocen{% endif %})
+                            </span>
+                        {% else %}
+                            <span class="text-muted fst-italic small">
+                                <i class="bi bi-star" aria-hidden="true"></i> Brak ocen - bądź pierwszy!
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-auto">
+                    <small class="text-muted d-flex align-items-center">
+                        <i class="bi bi-calendar3 me-1" aria-hidden="true"></i>
+                        <span>{{ post.created_at|date:"d M Y" }}</span>
+                    </small>
+                    <a href="{% url 'blog:post_detail' post.pk %}" class="btn btn-sm btn-primary position-relative" style="z-index: 2;">
+                        Czytaj więcej <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="card border-0 shadow-sm text-center py-5">
+            <div class="card-body">
+                <i class="bi bi-map display-1 text-muted mb-4 d-block" aria-hidden="true"></i>
+                <h3 class="mb-3 fw-bold">Brak Postów Podróżniczych</h3>
+                <p class="text-muted mb-4 lead">
+                    Rozpocznij swój blog podróżniczy AI, dodając pierwszy post w
+                    <a href="/admin/" class="text-decoration-none fw-semibold" target="_blank" rel="noopener noreferrer">panelu administracyjnym</a>
+                    lub używając <a href="{% url 'blog:add_ai_post' %}" class="text-decoration-none fw-semibold">generatora AI</a>.
+                </p>
+                <p class="text-muted small fst-italic">
+                    <i class="bi bi-lightbulb me-1" aria-hidden="true"></i>
+                    Dodawaj posty z różnymi modelami AI i obserwuj, jak użytkownicy je oceniają!
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+

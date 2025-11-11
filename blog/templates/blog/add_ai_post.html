@@ -1,0 +1,274 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}Dodaj Post AI - Blog Podróżniczy AI{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="{% url 'blog:post_list' %}" class="text-decoration-none" aria-label="Powrót do strony głównej">
+                <i class="bi bi-house-door" aria-hidden="true"></i> Strona Główna
+            </a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Dodaj Post AI</li>
+    </ol>
+</nav>
+
+<!-- Page Header -->
+<div class="text-center mb-5">
+    <h1 class="display-4 fw-bold mb-3 text-dark">
+        <i class="bi bi-robot text-primary me-2" aria-hidden="true"></i>
+        Panel Administracyjny
+    </h1>
+</div>
+
+<!-- Display Messages -->
+{% if messages %}
+<div class="row mb-4">
+    <div class="col-lg-8 mx-auto">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+            {% if message.tags == 'success' %}
+                <i class="bi bi-check-circle-fill me-2"></i>
+            {% elif message.tags == 'error' %}
+                <i class="bi bi-exclamation-circle-fill me-2"></i>
+            {% else %}
+                <i class="bi bi-info-circle-fill me-2"></i>
+            {% endif %}
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Zamknij"></button>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div class="row g-4">
+    <!-- Main Form Column -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4 p-md-5">
+                <h3 class="card-title mb-4 fw-bold">
+                    <i class="bi bi-pencil-square text-primary me-2"></i>
+                    Utwórz Nowy Post
+                </h3>
+
+                <form method="post" action="{% url 'blog:add_ai_post' %}" id="aiPostForm">
+                    {% csrf_token %}
+
+                    <!-- AI Model Selection -->
+                    <div class="mb-4">
+                        <label for="{{ form.model_name.id_for_label }}" class="form-label fw-semibold fs-5">
+                            <i class="bi bi-cpu me-2 text-primary"></i>{{ form.model_name.label }}
+                        </label>
+                        {{ form.model_name }}
+                        {% if form.model_name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.model_name.errors }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Wybierz model AI, który wygeneruje treść posta. Każdy model ma unikalny styl pisania.
+                        </div>
+                    </div>
+
+                    <!-- Prompt Text Area -->
+                    <div class="mb-4">
+                        <label for="{{ form.prompt_text.id_for_label }}" class="form-label fw-semibold fs-5">
+                            <i class="bi bi-chat-left-text me-2 text-primary"></i>{{ form.prompt_text.label }}
+                        </label>
+                        {{ form.prompt_text }}
+                        {% if form.prompt_text.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.prompt_text.errors }}
+                            </div>
+                        {% endif %}
+                        {% if form.prompt_text.help_text %}
+                            <div class="form-text">
+                                <i class="bi bi-lightbulb me-1"></i>
+                                {{ form.prompt_text.help_text }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Example Prompts -->
+                    <div class="alert alert-info border-0 shadow-sm mb-4" role="alert">
+                        <h6 class="alert-heading fw-bold">
+                            <i class="bi bi-book me-2"></i>Przykładowe Prompty:
+                        </h6>
+                        <ul class="mb-0 mt-3">
+                            <li class="mb-2">
+                                <strong>Plaża:</strong> "Opisz piękne plaże Bali w Indonezji. Współrzędne: -8.4095, 115.1889. Uwzględnij najlepsze plaże, surfing i kulturę."
+                            </li>
+                            <li class="mb-2">
+                                <strong>Miasto:</strong> "Napisz o Paryżu we Francji. Współrzędne: 48.8566, 2.3522. Opisz Wieżę Eiffla, Luwr i francuską kuchnię."
+                            </li>
+                            <li class="mb-2">
+                                <strong>Przyroda:</strong> "Eksploracja Grand Canyon w USA. Współrzędne: 36.1069, -112.1129. Szlaki turystyczne, widoki i historia geologiczna."
+                            </li>
+                            <li>
+                                <strong>Góry:</strong> "Tatry w Polsce. Współrzędne: 49.2794, 19.9498. Szlaki górskie, schroniska i porady dla turystów."
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div class="d-flex gap-3 flex-wrap">
+                        <button type="submit" class="btn btn-primary btn-lg px-5 shadow-sm" id="submitBtn">
+                            <i class="bi bi-magic me-2"></i>Generuj Post AI
+                        </button>
+                        <a href="{% url 'blog:post_list' %}" class="btn btn-outline-secondary btn-lg px-4">
+                            <i class="bi bi-x-circle me-2"></i>Anuluj
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Column -->
+    <div class="col-lg-4">
+        <!-- Info Card -->
+        <div class="card border-0 shadow-sm mb-4 bg-light">
+            <div class="card-body p-4">
+                <h5 class="card-title fw-bold mb-3">
+                    <i class="bi bi-info-circle text-primary me-2"></i>Jak to działa?
+                </h5>
+                <ol class="mb-0">
+                    <li class="mb-3">
+                        <strong>Wybierz Model AI</strong><br>
+                        <small class="text-muted">Każdy model ma unikalny styl pisania</small>
+                    </li>
+                    <li class="mb-3">
+                        <strong>Wprowadź Prompt</strong><br>
+                        <small class="text-muted">Opisz miejsce i dołącz współrzędne GPS</small>
+                    </li>
+                    <li class="mb-3">
+                        <strong>Kliknij "Generuj"</strong><br>
+                        <small class="text-muted">AI stworzy kompletny post podróżniczy</small>
+                    </li>
+                    <li>
+                        <strong>Gotowe!</strong><br>
+                        <small class="text-muted">Post pojawi się na blogu z mapą</small>
+                    </li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Available AI Models Card -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <h5 class="card-title fw-bold mb-3">
+                    <i class="bi bi-cpu text-primary me-2"></i>Dostępne Modele AI
+                </h5>
+                <div class="d-flex flex-column gap-2">
+                    <div class="p-2 rounded bg-light">
+                        <span class="badge ai-badge-chatgpt me-2">ChatGPT</span>
+                        <small class="text-muted">OpenAI GPT-3.5</small>
+                    </div>
+                    <div class="p-2 rounded bg-light">
+                        <span class="badge ai-badge-gemini me-2">Gemini</span>
+                        <small class="text-muted">Google Gemini Pro</small>
+                    </div>
+                    <div class="p-2 rounded bg-light">
+                        <span class="badge ai-badge-deepseek me-2">DeepSeek</span>
+                        <small class="text-muted">DeepSeek Chat</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent AI Posts -->
+        {% if recent_ai_posts %}
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <h5 class="card-title fw-bold mb-3">
+                    <i class="bi bi-clock-history text-primary me-2"></i>Ostatnie Posty AI
+                </h5>
+                <div class="list-group list-group-flush">
+                    {% for post in recent_ai_posts %}
+                    <a href="{% url 'blog:post_detail' post.pk %}"
+                       class="list-group-item list-group-item-action px-0 border-0">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <strong class="text-truncate me-2">{{ post.title|truncatewords:5 }}</strong>
+                            <span class="badge ai-badge-{{ post.author|lower }} flex-shrink-0">{{ post.author }}</span>
+                        </div>
+                        <small class="text-muted">
+                            <i class="bi bi-calendar3 me-1"></i>{{ post.created_at|date:"d.m.Y" }}
+                        </small>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Additional Instructions Section -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm bg-gradient-light">
+            <div class="card-body p-4 p-md-5">
+                <h4 class="fw-bold mb-4 text-center">
+                    <i class="bi bi-question-circle text-primary me-2"></i>
+                    Wskazówki dla Najlepszych Wyników
+                </h4>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="bi bi-geo-alt-fill display-4 text-primary mb-3 d-block"></i>
+                            <h6 class="fw-bold">Dodaj Współrzędne</h6>
+                            <p class="text-muted small mb-0">
+                                Zawsze podawaj szerokość i długość geograficzną dla dokładnej lokalizacji na mapie.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="bi bi-chat-quote display-4 text-success mb-3 d-block"></i>
+                            <h6 class="fw-bold">Bądź Szczegółowy</h6>
+                            <p class="text-muted small mb-0">
+                                Im więcej szczegółów podasz, tym bogatszy i ciekawszy będzie wygenerowany post.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="bi bi-stars display-4 text-warning mb-3 d-block"></i>
+                            <h6 class="fw-bold">Eksperymentuj</h6>
+                            <p class="text-muted small mb-0">
+                                Wypróbuj różne modele AI dla tego samego miejsca i porównaj wyniki!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add loading state to submit button
+    document.getElementById('aiPostForm').addEventListener('submit', function(e) {
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Generowanie...';
+    });
+
+    // Character counter for prompt textarea
+    const promptTextarea = document.getElementById('id_prompt_text');
+    const charCountDiv = document.createElement('div');
+    charCountDiv.className = 'form-text text-end';
+    charCountDiv.innerHTML = '<small>Znaki: <span id="charCount">0</span></small>';
+    promptTextarea.parentNode.appendChild(charCountDiv);
+
+    promptTextarea.addEventListener('input', function() {
+        document.getElementById('charCount').textContent = this.value.length;
+    });
+</script>
+{% endblock %}
+
