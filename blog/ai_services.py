@@ -82,8 +82,8 @@ class OpenAIService(AIServiceBase):
     def generate_travel_post(self, prompt: str) -> AIResponse:
         """Generate content using OpenAI's ChatGPT"""
         try:
-            import openai
-            client = openai.OpenAI(api_key=self.api_key)
+            from openai import OpenAI
+            client = OpenAI(api_key=self.api_key)
 
             # Extract coordinates from prompt
             lat, lng = self.extract_coordinates(prompt)

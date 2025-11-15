@@ -32,6 +32,20 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+# For classroom deployment - allow CSRF from common origins
+# Add your server IP here if needed
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'https://*.ngrok.io',
+    'https://*.ngrok-free.app',
+    'https://*.ngrok-free.dev',
+]
+
+# If SERVER_IP env variable is set, add it
+if os.getenv('SERVER_IP'):
+    CSRF_TRUSTED_ORIGINS.append(f"http://{os.getenv('SERVER_IP')}:8000")
+
 
 # Application definition
 
@@ -48,6 +62,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'blog.middleware.NgrokSkipWarningMiddleware',  # Skip ngrok browser warning
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -119,7 +134,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # Default primary key field type

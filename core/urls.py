@@ -16,9 +16,18 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.http import JsonResponse
+from django.views.decorators.http import require_GET
+
+
+@require_GET
+def health_check(request):
+    """Health check endpoint for Docker monitoring"""
+    return JsonResponse({'status': 'healthy', 'service': 'django-travel-blog'})
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('health/', health_check, name='health_check'),
     path('', include('blog.urls')),
 ]
