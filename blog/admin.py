@@ -32,7 +32,7 @@ class PostAdmin(admin.ModelAdmin):
     get_average_rating.short_description = 'Avg Rating'
 
     def is_ai_generated(self, obj):
-        return '✓' if obj.ai_prompt else '✗'
+        return bool(obj.ai_prompt)
     is_ai_generated.short_description = 'AI Generated'
     is_ai_generated.boolean = True
 
