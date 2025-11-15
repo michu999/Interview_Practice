@@ -8,5 +8,6 @@ urlpatterns = [
     path('post/<int:pk>/', views.post_detail, name='post_detail'),
     path('post/<int:pk>/rate/', views.submit_rating, name='submit_rating'),
     path('ai/add/', views.add_ai_post, name='add_ai_post'),
+    path('ai/status/', views.ai_post_status, name='ai_post_status'),
 ]
 

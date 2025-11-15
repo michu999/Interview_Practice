@@ -1,0 +1,50 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}Brak uprawnień - Blog Podróżniczy AI{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="text-center mb-5">
+            <div class="display-1 text-danger mb-3">
+                <i class="bi bi-shield-exclamation"></i>
+            </div>
+            <h1 class="display-4 fw-bold text-danger mb-3">Brak uprawnień</h1>
+            <p class="lead text-muted mb-4">
+                Nie masz uprawnień do korzystania z tej funkcjonalności.
+            </p>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4 p-md-5 text-center">
+                <h5 class="card-title mb-4">
+                    <i class="bi bi-info-circle text-primary me-2"></i>
+                    Informacja o dostępie
+                </h5>
+
+                <p class="mb-4">
+                    Panel tworzenia postów AI jest dostępny tylko dla administratorów systemu.
+                </p>
+
+                <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center">
+                    <a href="{% url 'blog:post_list' %}" class="btn btn-primary">
+                        <i class="bi bi-house-door me-2"></i>
+                        Powrót do strony głównej
+                    </a>
+                    <a href="/admin/" class="btn btn-outline-secondary" target="_blank">
+                        <i class="bi bi-box-arrow-up-right me-2"></i>
+                        Panel administracyjny
+                    </a>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="mt-4 text-center">
+            <small class="text-muted">
+                403 - Forbidden Access
+            </small>
+        </div>
+    </div>
+</div>
+{% endblock %}

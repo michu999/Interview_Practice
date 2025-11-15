@@ -57,7 +57,7 @@ Your data is saved in:
 
 ## 🔒 Security
 
-Your real IP (`84.40.221.93`) is **COMPLETELY HIDDEN**.
+Your real IP is **COMPLETELY HIDDEN**.
 
 Students only see: `https://random-name.ngrok-free.dev`
 

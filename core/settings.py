@@ -63,6 +63,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'blog.middleware.NgrokSkipWarningMiddleware',  # Skip ngrok browser warning
+    'blog.middleware.PermissionDeniedMiddleware',  # Handle PermissionDenied exceptions
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',

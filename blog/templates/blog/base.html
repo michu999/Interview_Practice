@@ -45,14 +45,26 @@
                         <li class="nav-item">
                             <a class="nav-link {% if 'ai/add' in request.path %}active{% endif %}" href="{% url 'blog:add_ai_post' %}" aria-label="Dodaj post AI">
                                 <i class="bi bi-robot" aria-hidden="true"></i> Generator AI
+                                <span class="badge bg-success ms-1">Admin</span>
                             </a>
                         </li>
                         {% endif %}
+                        {% if user.is_authenticated %}
                         <li class="nav-item">
                             <a class="nav-link" href="/admin/" target="_blank" rel="noopener noreferrer" aria-label="Panel administracyjny">
-                                <i class="bi bi-gear" aria-hidden="true"></i> Admin
+                                <i class="bi bi-gear" aria-hidden="true"></i> Panel Admin
+                                {% if user.is_staff %}
+                                <span class="badge bg-primary ms-1">{{ user.username }}</span>
+                                {% endif %}
                             </a>
                         </li>
+                        {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/" target="_blank" rel="noopener noreferrer" aria-label="Logowanie">
+                                <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> Logowanie
+                            </a>
+                        </li>
+                        {% endif %}
                     </ul>
                 </div>
             </div>

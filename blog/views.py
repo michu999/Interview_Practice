@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
 from .models import Post, Rating, AIPrompt
 from .forms import AIPromptForm
 from .ai_services import generate_ai_blog_post
@@ -84,18 +85,32 @@ def add_ai_post(request):
     """
     View for creating AI-generated blog posts using real AI APIs
     Only accessible to staff/admin users
+
+    Security: Requires user to be authenticated AND have staff privileges
     """
+    # Double-check user permissions (defensive programming)
+    if not request.user.is_authenticated:
+        logger.warning(
+            f"Unauthenticated user attempted to access AI post creation from IP: {request.META.get('REMOTE_ADDR')}")
+        raise PermissionDenied("Musisz być zalogowany, aby uzyskać dostęp do tej strony.")
+
+    if not request.user.is_staff:
+        logger.warning(
+            f"Non-staff user {request.user.username} attempted to access AI post creation from IP: {request.META.get('REMOTE_ADDR')}")
+        raise PermissionDenied("Nie masz uprawnień do tworzenia postów AI. Skontaktuj się z administratorem.")
+
     if request.method == 'POST':
         form = AIPromptForm(request.POST)
         if form.is_valid():
             ai_prompt = None
             try:
-                # Save the prompt
+                # Save the prompt with proper user attribution
                 ai_prompt = form.save(commit=False)
                 ai_prompt.created_by = request.user
                 ai_prompt.save()
 
-                logger.info(f"Processing AI prompt with model: {ai_prompt.model_name}")
+                logger.info(
+                    f"Admin user {request.user.username} started AI generation with model: {ai_prompt.model_name}")
 
                 # Call real AI API through service layer
                 ai_response = generate_ai_blog_post(
@@ -113,7 +128,8 @@ def add_ai_post(request):
                     ai_prompt=ai_prompt
                 )
 
-                logger.info(f"Successfully created post: {post.title} (ID: {post.pk})")
+                logger.info(
+                    f"Successfully created post: {post.title} (ID: {post.pk}) by admin {request.user.username}")
 
                 messages.success(
                     request,
@@ -123,7 +139,7 @@ def add_ai_post(request):
 
             except ValueError as e:
                 # Configuration/validation errors
-                logger.error(f"Configuration error: {str(e)}")
+                logger.error(f"Configuration error for user {request.user.username}: {str(e)}")
                 if ai_prompt:
                     ai_prompt.delete()  # Clean up if post creation failed
                 messages.error(
@@ -132,7 +148,7 @@ def add_ai_post(request):
                 )
             except Exception as e:
                 # API or other errors
-                logger.error(f"AI generation error: {str(e)}", exc_info=True)
+                logger.error(f"AI generation error for user {request.user.username}: {str(e)}", exc_info=True)
                 if ai_prompt:
                     ai_prompt.delete()  # Clean up if post creation failed
                 messages.error(
@@ -147,14 +163,28 @@ def add_ai_post(request):
     else:
         form = AIPromptForm()
 
-    # Get recent AI-generated posts for display
-    recent_ai_posts = Post.objects.filter(ai_prompt__isnull=False)[:5]
+    # Get recent AI-generated posts for display (only for staff users)
+    recent_ai_posts = Post.objects.filter(ai_prompt__isnull=False).order_by('-created_at')[:5]
 
     context = {
         'form': form,
         'recent_ai_posts': recent_ai_posts,
+        'user_can_create_ai_posts': True,  # Already verified above
     }
     return render(request, 'blog/add_ai_post.html', context)
 
 
+@staff_member_required
+def ai_post_status(request):
+    """
+    API endpoint to check if user has permission to create AI posts
+    Returns JSON response indicating access level
+    """
+    return JsonResponse({
+        'has_access': True,
+        'user': request.user.username,
+        'is_staff': request.user.is_staff,
+        'is_superuser': request.user.is_superuser,
+        'permissions': list(request.user.user_permissions.values_list('codename', flat=True))
+    })
 
