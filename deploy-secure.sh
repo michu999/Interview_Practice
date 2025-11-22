@@ -1,13 +1,13 @@
 #!/bin/bash
 # Complete deployment with ngrok - ONE command for secure deployment
 
-echo "🚀 Starting Secure Deployment with ngrok"
+echo "Starting Secure Deployment with ngrok"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
 # Check for NGROK_AUTHTOKEN
 if [ -z "$NGROK_AUTHTOKEN" ]; then
-    echo "❌ Error: NGROK_AUTHTOKEN not set"
+    echo "Error: NGROK_AUTHTOKEN not set"
     echo ""
     echo "Run this first:"
     echo "  export NGROK_AUTHTOKEN=your_token_here"
@@ -15,25 +15,25 @@ if [ -z "$NGROK_AUTHTOKEN" ]; then
     exit 1
 fi
 
-echo "✅ ngrok auth token found"
+echo "ngrok auth token found"
 echo ""
 
 # Step 1: Build and start Django
-echo "📦 Step 1: Building Django application..."
+echo "Step 1: Building Django application..."
 docker stop django_travel_blog 2>/dev/null || true
 docker rm django_travel_blog 2>/dev/null || true
 
 docker build -t django_travel_blog:latest .
 
 if [ $? -ne 0 ]; then
-    echo "❌ Build failed. Check errors above."
+    echo "Build failed. Check errors above."
     exit 1
 fi
 
 # Create database file
 touch db.sqlite3
 
-echo "🚀 Step 2: Starting Django container..."
+echo "Step 2: Starting Django container..."
 docker run -d \
     --name django_travel_blog \
     -p 8000:8000 \
@@ -42,17 +42,17 @@ docker run -d \
     django_travel_blog:latest
 
 if [ $? -ne 0 ]; then
-    echo "❌ Failed to start Django. Check: docker logs django_travel_blog"
+    echo "Failed to start Django. Check: docker logs django_travel_blog"
     exit 1
 fi
 
-echo "✅ Django app started"
-echo "⏳ Waiting for Django to be ready..."
+echo "Django app started"
+echo "Waiting for Django to be ready..."
 sleep 10
 
 # Step 2: Start ngrok
 echo ""
-echo "🔒 Step 3: Starting ngrok tunnel..."
+echo "Step 3: Starting ngrok tunnel..."
 
 docker stop ngrok_tunnel 2>/dev/null || true
 docker rm ngrok_tunnel 2>/dev/null || true
@@ -78,38 +78,28 @@ done
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "✅ DEPLOYMENT COMPLETE!"
+echo "DEPLOYMENT COMPLETE!"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
 if [ ! -z "$NGROK_URL" ]; then
-    echo "🌐 PUBLIC URL (Share with students):"
+    echo "PUBLIC URL:"
     echo "   $NGROK_URL"
     echo ""
-    echo "🔐 Admin Access:"
+    echo "Admin Access:"
     echo "   $NGROK_URL/admin"
     echo "   Username: admin"
     echo "   Password: admin123"
     echo ""
-    echo "🤖 Create AI Posts:"
+    echo "Create AI Posts:"
     echo "   $NGROK_URL/ai/add/"
 else
-    echo "⚠️  Could not auto-detect ngrok URL"
-    echo "📊 Visit: http://localhost:4040 to get your URL"
+    echo "Could not auto-detect ngrok URL"
+    echo "Visit: http://localhost:4040 to get your URL"
 fi
 
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "🔒 SECURITY STATUS:"
-echo "   ✅ Your real IP (84.40.221.93) is HIDDEN"
-echo "   ✅ Students only see ngrok URL"
-echo "   ✅ Temporary URL (expires when stopped)"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-echo "📊 Monitor traffic: http://localhost:4040"
-echo "📝 View logs: docker logs -f django_travel_blog"
-echo "🛑 Stop everything: ./stop-ngrok.sh"
-echo ""
-echo "💾 Database saved in: db.sqlite3"
-echo ""
+echo "Monitor traffic: http://localhost:4040"
+echo "View logs: docker logs -f django_travel_blog"
+echo "Stop everything: ./stop-ngrok.sh"
+
 
