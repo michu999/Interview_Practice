@@ -28,9 +28,6 @@
                 <header class="mb-4 pb-4 border-bottom">
                     <h2 class="display-6 fw-bold mb-3">{{ post.title }}</h2>
                     <div class="d-flex flex-wrap gap-2 align-items-center">
-                        <span class="badge ai-badge-{{ post.author|lower }} text-uppercase fs-6">
-                            <i class="bi bi-robot" aria-hidden="true"></i> {{ post.author }}
-                        </span>
                         <span class="text-muted">
                             <i class="bi bi-calendar3" aria-hidden="true"></i> {{ post.created_at|date:"d F Y" }}
                         </span>
@@ -196,9 +193,6 @@
                 <strong>{{ post.title|escapejs }}</strong>
             </div>
             <div class="popup-body">
-                <p class="popup-author">
-                    <span class="popup-badge ai-{{ post.author|lower }}">{{ post.author }}</span>
-                </p>
                 <p class="popup-coords">
                     <small>📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}</small>
                 </p>
